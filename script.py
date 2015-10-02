@@ -34,5 +34,5 @@ for node in child[0]:
 			ICE_TOC = "y"
 		else:
 			ICE_TOC = "n"
-		print child[1][0][i][0].text + "," + ICE_TOC			# comma delimited output
+		print child[1][0][i][0].text + "," + ICE_TOC			# comma delimited output... ADD TO THIS
 
