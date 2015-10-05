@@ -11,10 +11,11 @@ MARC773 = raw_input("enter MARC773 field: ") 					# if using PowerShell, right c
 MARC773 = MARC773.replace(" ", "_")
 
 endeca_url = "http://search.lib.unc.edu/search?Ntt=" + MARC773 + "&Ntk=Keyword&Nty=1&output-format=xml&facet-options=exclude-refinements&include-record-property=ICE+Chapter+Title&include-record-property=Syndetics+ISBN&include-record-property=OCLCNumber&include-record-property=UPC&include-record-property=Main+Author&include-record-property=Other+Authors&maximum-number-records=1000"
-webbrowser.open(endeca_url) # here's your XML file in browser, if you want it. Firefox allows spaces from MARC773.
+#webbrowser.open(endeca_url) # here's your XML file in browser, if you want it. Firefox allows spaces from MARC773.
 urllib.urlretrieve(endeca_url, MARC773 + ".xml") 				# saves that XML into the same folder this script is in, the name is the MARC773 field
 
 tree = ET.parse(MARC773 + ".xml")
+# tree = ET.parse("search.xml") #test case for Kristina's UPC xml
 root = tree.getroot()
 
 for child in root: 												# tells us (and script) what child is
@@ -30,31 +31,36 @@ for node in child[1][0]:
 print ("There are " + str(n) + " ebooks in this collection.")
 
 c = csv.writer(open(MARC773 + ".csv", "wb"))
+# c = csv.writer(open("search.csv", "wb")) #test case for Kristina's UPC xml
 
 for node in child[0]:											
 	for i in range(n):											# this cycles through the ITEM tags that contain records data
-		if child[1][0][i][1][0].tag == "ICE-Chapter-Title":		# sets variable ICE_TOC to y/n
-			ICE_TOC = "1"
+		ice_toc = child[1][0][i][1].find('ICE-Chapter-Title')
+		if ice_toc != None:
+			bool_ice_toc = 1
 		else:
-			ICE_TOC = "0"
+			bool_ice_toc = 0
 			
-		if child[1][0][i][1][0].tag == "Main-Author":
-			Main_Author = "1"
-		elif child[1][0][i][1][1].tag == "Main-Author":
-			Main_Author = "1"
-		elif child[1][0][i][1][2].tag == "Main-Author":
-			Main_Author = "1"
+		main_author = child[1][0][i][1].find('Main-Author')
+		if main_author != None:
+			bool_main_author = 1
 		else:
-			Main_Author = "0"
+			bool_main_author = 0
 			
-		if child[1][0][i][1][0].tag == "OCLCNumber":
-			OCLC_Number = "1"
-		elif child[1][0][i][1][1].tag == "OCLCNumber":
-			OCLC_Number = "1"
-		elif child[1][0][i][1][2].tag == "OCLCNumber":
-			OCLC_Number = "1"
+		upc = child[1][0][i][1].find('UPC')
+		if upc != None:
+			bool_upc = 1
 		else:
-			OCLC_Number = "0"
+			bool_upc = 0
+			
+		oclc_number = child[1][0][i][1].find('OCLCNumber')
+		if oclc_number != None:
+			bool_oclc = 1
+		else:
+			bool_oclc = 0
+				
+		print child[1][0][i][0].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc)
+		c.writerow([child[1][0][i][0].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc])		# comma delimited output... ADD TO THIS
 		
-		c.writerow([child[1][0][i][0].text, ICE_TOC, Main_Author, OCLC_Number])			# comma delimited output... ADD TO THIS
+
 
