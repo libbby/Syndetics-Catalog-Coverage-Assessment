@@ -9,9 +9,10 @@ import csv
 
 MARC773 = raw_input("enter MARC773 field: ") 					# if using PowerShell, right click to paste
 MARC773 = MARC773.replace(" ", "_")
+collection_short = raw_input("enter a 'shorthand' code for the collection: ")
 
 endeca_url = "http://search.lib.unc.edu/search?Ntt=" + MARC773 + "&Ntk=Keyword&Nty=1&output-format=xml&facet-options=exclude-refinements&include-record-property=ICE+Chapter+Title&include-record-property=Syndetics+ISBN&include-record-property=OCLCNumber&include-record-property=UPC&include-record-property=Main+Author&include-record-property=Other+Authors&maximum-number-records=1000"
-#webbrowser.open(endeca_url) # here's your XML file in browser, if you want it. Firefox allows spaces from MARC773.
+#webbrowser.open(endeca_url) # here's your XML file in browser, if you want it.
 urllib.urlretrieve(endeca_url, MARC773 + ".xml") 				# saves that XML into the same folder this script is in, the name is the MARC773 field
 
 tree = ET.parse(MARC773 + ".xml")
@@ -28,6 +29,8 @@ n = 0															# produces a count of ebooks in the given collection
 for node in child[1][0]:
 	n += 1
 
+
+	
 print ("There are " + str(n) + " ebooks in this collection.")
 
 c = csv.writer(open(MARC773 + ".csv", "wb"))
@@ -60,7 +63,7 @@ for node in child[0]:
 			bool_oclc = 0
 				
 		print child[1][0][i][0].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc)
-		c.writerow([child[1][0][i][0].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc])		# comma delimited output... ADD TO THIS
+		c.writerow([collection_short, child[1][0][i][0].text, collection_short + child[1][0][i][0].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc])		# comma delimited output... ADD TO THIS
 		
 
 
