@@ -5,6 +5,7 @@ import webbrowser
 import lxml.etree as ET
 import urllib
 import csv
+import time
 
 
 MARC773 = raw_input("enter MARC773 field: ") 					# if using PowerShell, right click to paste
@@ -30,8 +31,8 @@ for node in child[1][0]:
 	
 print ("There are " + str(n) + " ebooks in this collection.")
 
-c = csv.writer(open(MARC773 + ".csv", "wb"))
-c.writerow(["Collection", "UNCb Identifier", "PK", "ICE ToC", "Main Author", "OCLC Number", "UPC", "Other Authors", "Syndetics ISBNs"])
+#c = csv.writer(open(MARC773 + ".csv", "wb"))
+#c.writerow(["Collection", "UNCb Identifier", "PK", "ICE ToC", "Main Author", "OCLC Number", "UPC", "Other Authors", "Syndetics ISBNs"])
 
 for node in child[0]:											
 	for i in range(n):											# this cycles through the ITEM tags that contain records data
@@ -58,9 +59,26 @@ for node in child[0]:
 			bool_upc = 1
 		else:
 			bool_upc = 0
-							
-		#print child[1][0][i][0].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc) + ", " + str(int(child[1][0][i][1].xpath("count(./Other-Authors/item)"))) + ", " + str(int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)")))
-		c.writerow([collection_short, child[1][0][i][0].text, collection_short + child[1][0][i][0].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc, int(child[1][0][i][1].xpath("count(./Other-Authors/item)")), int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)"))])
+		
+		isbnx = []
+		for node in child[1][0][i][1].find('Syndetics-ISBN').iter("item"):
+			isbnx.append(node.text)
+			z = int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)"))
+		y=0
+		z = int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)"))
+		for y in range(z):
+			print isbnx[y]
+			webbrowser.open("http://syndetics.com/index.aspx?isbn=" + isbnx[y] + "/XML.XML&client=ncchapelh&oclc=")
+			y += 1
+			time.sleep(0.001)
+		
+		
+		#webbrowser.open("http://syndetics.com/index.aspx?isbn=" + isbnx[i] + "/XML.XML&client=ncchapelh&oclc=")
+		#urllib.urlretrieve("http://syndetics.com/index.aspx?isbn=" + isbn1 + "/XML.XML&client=ncchapelh")
+		
+		
+		print child[1][0][i][0].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc) + ", " + str(int(child[1][0][i][1].xpath("count(./Other-Authors/item)"))) + ", " + str(int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)"))) + ", " + str(isbnx)
+		#c.writerow([collection_short, child[1][0][i][0].text, collection_short + child[1][0][i][0].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc, int(child[1][0][i][1].xpath("count(./Other-Authors/item)")), int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)"))])
 		
 
 
