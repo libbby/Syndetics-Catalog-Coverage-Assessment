@@ -57,7 +57,7 @@ def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search 
 	global bool_oclc_lc
 	global bool_oclc_mc
 	global bool_oclc_sc
-	syn_doch_oclc = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(child[1][0][i][1].find('OCLCNumber').text))) # for missing Syndetics results, parse them as HTML
+	syn_doch_oclc = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(child[1][0][i][1].find('OCLCNumber/item').text))) # for missing Syndetics results, parse them as HTML
 	if syn_doch_oclc.find('head') != None: # passes a value of 0 to all booleans if the XML isn't even there (evident by way of present HTML tags)
 		bool_oclc_summary = 0
 		bool_oclc_toc = 0
@@ -66,7 +66,7 @@ def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search 
 		bool_oclc_mc = 0
 		bool_oclc_sc = 0
 	else:
-		syn_docx_oclc = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(child[1][0][i][1].find('OCLCNumber').text)))
+		syn_docx_oclc = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(child[1][0][i][1].find('OCLCNumber/item').text)))
 		if syn_docx_oclc.find('SUMMARY') != None: # Searches Syndetics XML for a 'SUMMARY' tag
 			bool_oclc_summary = 1
 		else:
@@ -97,7 +97,7 @@ MARC773 = MARC773.replace(" ", "_")
 collection_short = raw_input("enter a 'shorthand' code for the collection: ")
 
 endeca_url = "http://search.lib.unc.edu/search?Ntt=" + MARC773 + "&Ntk=Keyword&Nty=1&output-format=xml&facet-options=exclude-refinements&include-record-property=ICE+Chapter+Title&include-record-property=Syndetics+ISBN&include-record-property=OCLCNumber&include-record-property=UPC&include-record-property=Main+Author&include-record-property=Other+Authors&maximum-number-records=1000"
-#webbrowser.open(endeca_url) 									# here's your XML file in browser, if you want it.
+webbrowser.open(endeca_url) 									# here's your XML file in browser, if you want it.
 urllib.urlretrieve(endeca_url, MARC773 + ".xml") 				# saves that XML into the same folder this script is in, the name is the MARC773 field
 c = csv.writer(open(MARC773 + ".csv", "wb"))
 c.writerow(["Collection", "UNCb Identifier", "PK", "ICE ToC", "Main Author", "OCLC Number", "UPC", "Other Authors", "Syndetics ISBNs", "ISBN1:SUMMARY", "ISBN1:TOC", "ISBN1:DBCHAPTER", "ISBN1:LC", "ISBN1:MC", "ISBN1:SC", "OCLC:SUMMARY", "OCLC:TOC", "OCLC:DBCHAPTER", "OCLC:LC", "OCLC:MC", "OCLC:SC"])
@@ -143,19 +143,22 @@ for node in child[0]:
 			bool_upc = 0
 		
 		isbnx = []												# creates a list of Syndetics ISBNs for each item.
-		for node in child[1][0][i][1].find('Syndetics-ISBN').iter("item"):
-			isbnx.append(node.text)
-			z = int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)"))
-		
-		
+		contains_isbn = child[1][0][i][1].find('Syndetics-ISBN')
+		if contains_isbn != None:
+			for node in child[1][0][i][1].find('Syndetics-ISBN').iter("item"):
+				isbnx.append(node.text)
+		else:
+			isbnx.append("unavailable")
+			
 		isbn1SyndTest()
+		time.sleep(0.0001)
 		oclcSynTest()
-		
+		time.sleep(0.0001)
 			
 		#webbrowser.open("http://syndetics.com/index.aspx?isbn=" + isbnx[0] + "/XML.XML&client=ncchapelh&oclc=")
 				
-		
-		print child[1][0][i][0].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc) + ", " + str(int(child[1][0][i][1].xpath("count(./Other-Authors/item)"))) + ", " + str(int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)"))) + ", " + str(isbnx[0]) + ", " + str(bool_isbn1_summary) + ", " + str(bool_isbn1_toc) + ", " + str(bool_isbn1_dbc) + ", " + str(bool_isbn1_lc) + ", " + str(bool_isbn1_mc) + ", " + str(bool_isbn1_sc) + ", " + str(bool_oclc_summary) + ", " + str(bool_oclc_toc) + ", " + str(bool_oclc_dbc) + ", " + str(bool_oclc_lc) + ", " + str(bool_oclc_mc) + ", " + str(bool_oclc_sc)
+		#print "http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc="+str(child[1][0][i][1].find('OCLCNumber/item').text)
+		#print child[1][0][i][0].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc) + ", " + str(int(child[1][0][i][1].xpath("count(./Other-Authors/item)"))) + ", " + str(int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)"))) + ", " + str(isbnx[0]) + ", " + str(bool_isbn1_summary) + ", " + str(bool_isbn1_toc) + ", " + str(bool_isbn1_dbc) + ", " + str(bool_isbn1_lc) + ", " + str(bool_isbn1_mc) + ", " + str(bool_isbn1_sc) + ", " + str(bool_oclc_summary) + ", " + str(bool_oclc_toc) + ", " + str(bool_oclc_dbc) + ", " + str(bool_oclc_lc) + ", " + str(bool_oclc_mc) + ", " + str(bool_oclc_sc)
 		c.writerow([collection_short, child[1][0][i][0].text, collection_short + child[1][0][i][0].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc, int(child[1][0][i][1].xpath("count(./Other-Authors/item)")), int(child[1][0][i][1].xpath("count(./Syndetics-ISBN/item)")), str(bool_isbn1_summary), str(bool_isbn1_toc), str(bool_isbn1_dbc), str(bool_isbn1_lc), str(bool_isbn1_mc), str(bool_isbn1_sc), str(bool_oclc_summary), str(bool_oclc_toc), str(bool_oclc_dbc), str(bool_oclc_lc), str(bool_oclc_mc), str(bool_oclc_sc)])
 		
 
