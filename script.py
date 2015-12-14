@@ -2,7 +2,7 @@
 # Results are written to a CSV file in the same directory script lives in
 # Libby Wilcher (https://github.com/libbby/Syndetics-Catalog-Coverage-Assessment), UNC Chapel Hill
 # Script written and tested in Python 2.7
-# Last updated: 22 October 2015
+# Last updated: 14 December 2015
 
 import webbrowser 
 import lxml.etree as ET
