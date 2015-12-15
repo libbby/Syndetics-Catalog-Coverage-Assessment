@@ -266,6 +266,6 @@ for child in root:	# tells us (and script) what child is
 	root.iter()
 	
 number_ebooks = child[1][0][2].text	# produces a count of ebooks in the given collection
-print ("There are " + str(number_ebooks) + " ebooks in this collection.")
+print ("There are " + str(number_ebooks) + " ebooks in this title collection.")
 
 loopThrough()
