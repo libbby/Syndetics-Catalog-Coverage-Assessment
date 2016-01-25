@@ -161,7 +161,7 @@ def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search 
 	global bool_oclc_lc
 	global bool_oclc_mc
 	global bool_oclc_sc
-	if child[1][1][i][0][0][1][0][1].text != "eBook":
+	if child[1][1][i][0][0][1][0][1].text != "eBook" and child[1][1][i][0][0][1][1][1].text != "eBook":
 		if int(child[1][1][i][2].xpath("count(./OCLCNumber/item)")) == 0:
 			bool_oclc_summary = 0
 			bool_oclc_toc = 0
@@ -221,7 +221,7 @@ def upcSynTest(): # use this function on each ITEM in the Endeca XML to search f
 	global bool_upc_lc
 	global bool_upc_mc
 	global bool_upc_sc
-	if child[1][1][i][0][0][1][0][1].text != "eBook":
+	if child[1][1][i][0][0][1][0][1].text != "eBook" and child[1][1][i][0][0][1][1][1].text != "eBook":
 		if int(child[1][1][i][2].xpath("count(./UPC/item)")) == 0:
 			bool_upc_avsummary = 0
 			bool_upc_toc = 0
@@ -361,7 +361,7 @@ num_input_lines = sum(1 for line in open('MARC773s.txt'))
 #collection_short = raw_input("enter a 'shorthand' code for the collection: ")	# this is used to create a primary key for our database later.
 
 
-c = csv.writer(open("test.csv", "wb"))
+c = csv.writer(open("test_1-25-16-1.csv", "wb"))
 c.writerow(["Collection", "UNCb Identifier", "PK", "ICE ToC", "Main Author", "OCLC Number", "UPC", "Other Authors", "Syndetics ISBNs", "Primary URLs", "ISBN1:SUMMARY", "ISBN1:TOC", "ISBN1:DBCHAPTER", "ISBN1:LC", "ISBN1:MC", "ISBN1:SC", "OCLC:SUMMARY", "OCLC:TOC", "OCLC:DBCHAPTER", "OCLC:LC", "OCLC:MC", "OCLC:SC", "UPC:AVSUMMARY", "UPC:TOC", "UPC:DBCHAPTER", "UPC:LC", "UPC:MC", "UPC:SC","ISBN2X:SUMMARY", "ISBN2X:TOC", "ISBN2X:DBCHAPTER", "ISBN2X:LC", "ISBN2x:MC", "ISBN2X:SC", "LC CLASS BOOL", "LCSH COUNT", "MESH COUNT", "OTHER SH COUNT"])
 
 
