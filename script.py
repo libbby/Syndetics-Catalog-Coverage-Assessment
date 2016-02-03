@@ -2,7 +2,7 @@
 # Results are written to a CSV file in the same directory script lives in
 # Libby Wilcher (https://github.com/libbby/Syndetics-Catalog-Coverage-Assessment), UNC Chapel Hill
 # Script written and tested in Python 2.7
-# Last updated: 15 January 2016
+# Last updated: 03 February 2016
 
 import webbrowser 
 import lxml.etree as ET
@@ -24,7 +24,23 @@ def populateISBN():	# creates a list of Syndetics ISBNs for each item.
 	else:
 		isbnx.append("unavailable")
 	
-
+def isEbook(): # test for determing if item is an ebook
+	global bool_is_ebook
+	total_bool_is_ebook = 0
+	f = 0
+	for f in range(format_count):
+		is_ebook = child[1][1][i][0][0][1][f][1].text
+		if is_ebook == "eBook":
+			bool_is_ebook = 1
+		else:
+			bool_is_ebook = 0
+		total_bool_is_ebook += bool_is_ebook
+		f += 1
+	if total_bool_is_ebook > 0:
+		bool_is_ebook = 1
+	else:
+		bool_is_ebook = 0
+	
 def isbn1SyndTest(): # use this function on each ITEM in the Endeca XML to search for Syndetics info using the first Syndetics ISBN listed.
 	global bool_isbn1_summary
 	global bool_isbn1_toc
@@ -161,7 +177,7 @@ def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search 
 	global bool_oclc_lc
 	global bool_oclc_mc
 	global bool_oclc_sc
-	if child[1][1][i][0][0][1][0][1].text != "eBook" and child[1][1][i][0][0][1][1][1].text != "eBook":
+	if bool_is_ebook == 0:
 		if int(child[1][1][i][2].xpath("count(./OCLCNumber/item)")) == 0:
 			bool_oclc_summary = 0
 			bool_oclc_toc = 0
@@ -221,7 +237,7 @@ def upcSynTest(): # use this function on each ITEM in the Endeca XML to search f
 	global bool_upc_lc
 	global bool_upc_mc
 	global bool_upc_sc
-	if child[1][1][i][0][0][1][0][1].text != "eBook" and child[1][1][i][0][0][1][1][1].text != "eBook":
+	if bool_is_ebook == 0:
 		if int(child[1][1][i][2].xpath("count(./UPC/item)")) == 0:
 			bool_upc_avsummary = 0
 			bool_upc_toc = 0
@@ -285,7 +301,7 @@ def loopThroughInputList():
 		MARC773 = MARC773s[il]
 		collection_short = raw_input("enter a 'shorthand' code for the collection "+MARC773+": ")	# this is used to create a primary key for our database later.
 		MARC773 = MARC773.replace(" ", "_")
-		#endeca_url = "http://search.lib.unc.edu/search?Nf=PubDateSort|BTWN%202014%202015&action=or:206605,false&Nty=1&output-format=xml&facet-options=exclude-refinements&include-record-property=ICE+Chapter+Title&include-record-property=Syndetics+ISBN&include-record-property=OCLCNumber&include-record-property=UPC&include-record-property=Main+Author&include-record-property=Other+Authors&maximum-number-records=1000&record-options=include-record-facets&include-record-property=Format" #UPC TEST URL
+		#endeca_url = "http://search.lib.unc.edu/search?Nf=PubDateSort|BTWN%202014%202015&action=or:206605,false&Nty=1&output-format=xml&facet-options=exclude-refinements&include-record-property=ICE+Chapter+Title&include-record-property=Syndetics+ISBN&include-record-property=OCLCNumber&include-record-property=UPC&include-record-property=Primary+URL&include-record-property=Main+Author&include-record-property=Other+Authors&maximum-number-records=1000&record-options=include-record-facets&include-record-property=Format" #UPC TEST URL
 		endeca_url = "http://search.lib.unc.edu/search?Ntt=" + MARC773 + "&Ntk=Keyword&Nty=1&output-format=xml&facet-options=exclude-refinements&include-record-property=ICE+Chapter+Title&include-record-property=Syndetics+ISBN&include-record-property=OCLCNumber&include-record-property=UPC&include-record-property=Main+Author&include-record-property=Other+Authors&include-record-property=Primary+URL&maximum-number-records=1000000&record-options=include-record-facets&include-record-property=Format" #REAL URL
 		webbrowser.open(endeca_url)	# here's your XML file in browser, if you want it.
 		urllib.urlretrieve(endeca_url, MARC773 + ".xml")	# saves that XML into the same folder this script is in, the name is the MARC773 field you input earlier
@@ -297,17 +313,14 @@ def loopThroughInputList():
 		
 		number_ebooks = child[1][0][2].text	# produces a count of ebooks in the given collection
 		print ("There are " + str(number_ebooks) + " ebooks in this title collection.")
-		#number_ebooks = 0 # produces a count of ebooks in the given collection
-		#for node in child[1][1]:
-		#	number_ebooks += 1
-		#print ("There are " + str(number_ebooks) + " ebooks in this collection.")
-		
+				
 		loopThroughXML()
 		
 		il += 1
 		
 def loopThroughXML():
 	global i
+	global format_count
 	i = 0
 	
 	for node in child[1][1]:
@@ -315,7 +328,9 @@ def loopThroughXML():
 		isbn_count = int(child[1][1][i][2].xpath("count(./Syndetics-ISBN/item)"))
 		otherauthor_count = int(child[1][1][i][2].xpath("count(./Other-Authors/item)"))
 		primary_url_count = int(child[1][1][i][2].xpath("count(./Primary-URL/item)"))
-		#for i in range(n):	# this cycles through the ITEM tags that contain records data
+		format_count = int(child[1][1][i][0][0].xpath("count(./dimensionValues/item)"))
+		isEbook()
+		
 		ice_toc = child[1][1][i][2].find('ICE-Chapter-Title')
 		if ice_toc != None:	# if the tag ICE-Chapter-Title is not absent (that is, it IS present) Bool =1
 			bool_ice_toc = 1
@@ -347,24 +362,18 @@ def loopThroughXML():
 		upcSynTest()
 		isbn2xSynTest()
 			
-		print child[1][1][i][1].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc) + ", " + str(otherauthor_count) + ", " + str(isbn_count) + ", " + str(primary_url_count) + ", " + str(isbnx[0]) + ", " + str(bool_isbn1_summary) + ", " + str(bool_isbn1_toc) + ", " + str(bool_isbn1_dbc) + ", " + str(bool_isbn1_lc) + ", " + str(bool_isbn1_mc) + ", " + str(bool_isbn1_sc) + ", " + str(bool_oclc_summary) + ", " + str(bool_oclc_toc) + ", " + str(bool_oclc_dbc) + ", " + str(bool_oclc_lc) + ", " + str(bool_oclc_mc) + ", " + str(bool_oclc_sc) + ", " + str(bool_upc_avsummary) + ", " + str(bool_upc_toc) + ", " + str(bool_upc_dbc) + ", " + str(bool_upc_lc) + ", " + str(bool_upc_mc) + ", " + str(bool_upc_sc) + ", " + str(bool_isbn2x_summary) + ", " + str(bool_isbn2x_toc) + ", " + str(bool_isbn2x_dbc) + ", " + str(bool_isbn2x_lc) + ", " + str(bool_isbn2x_mc) + ", " + str(bool_isbn2x_sc)
+		print child[1][1][i][1].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc) + ", " + str(otherauthor_count) + ", " + str(isbn_count) + ", " + str(primary_url_count) + ", " + str(bool_is_ebook) + ", " + str(isbnx[0]) + ", " + str(bool_isbn1_summary) + ", " + str(bool_isbn1_toc) + ", " + str(bool_isbn1_dbc) + ", " + str(bool_isbn1_lc) + ", " + str(bool_isbn1_mc) + ", " + str(bool_isbn1_sc) + ", " + str(bool_oclc_summary) + ", " + str(bool_oclc_toc) + ", " + str(bool_oclc_dbc) + ", " + str(bool_oclc_lc) + ", " + str(bool_oclc_mc) + ", " + str(bool_oclc_sc) + ", " + str(bool_upc_avsummary) + ", " + str(bool_upc_toc) + ", " + str(bool_upc_dbc) + ", " + str(bool_upc_lc) + ", " + str(bool_upc_mc) + ", " + str(bool_upc_sc) + ", " + str(bool_isbn2x_summary) + ", " + str(bool_isbn2x_toc) + ", " + str(bool_isbn2x_dbc) + ", " + str(bool_isbn2x_lc) + ", " + str(bool_isbn2x_mc) + ", " + str(bool_isbn2x_sc)
 		c.writerow([collection_short, child[1][1][i][1].text, collection_short + child[1][1][i][1].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc, otherauthor_count, isbn_count, primary_url_count, str(bool_isbn1_summary), str(bool_isbn1_toc), str(bool_isbn1_dbc), str(bool_isbn1_lc), str(bool_isbn1_mc), str(bool_isbn1_sc), str(bool_oclc_summary), str(bool_oclc_toc), str(bool_oclc_dbc), str(bool_oclc_lc), str(bool_oclc_mc), str(bool_oclc_sc), str(bool_upc_avsummary), str(bool_upc_toc), str(bool_upc_dbc), str(bool_upc_lc), str(bool_upc_mc), str(bool_upc_sc), str(bool_isbn2x_summary), str(bool_isbn2x_toc), str(bool_isbn2x_dbc), str(bool_isbn2x_lc), str(bool_isbn2x_mc), str(bool_isbn2x_sc)])
 		
 		i += 1
 			
 with open('MARC773s.txt', 'r') as f:
 	MARC773s = f.read().splitlines()
-num_input_lines = sum(1 for line in open('MARC773s.txt'))
+#num_input_lines = sum(1 for line in open('MARC773s.txt'))
 
-#MARC773 = raw_input("enter MARC773 field: ")	# Unique collection title string
-#MARC773 = MARC773.replace(" ", "_")
-#collection_short = raw_input("enter a 'shorthand' code for the collection: ")	# this is used to create a primary key for our database later.
-
-
-c = csv.writer(open("test_1-25-16-1.csv", "wb"))
+c = csv.writer(open("test_2-3-16-1.csv", "wb"))
 c.writerow(["Collection", "UNCb Identifier", "PK", "ICE ToC", "Main Author", "OCLC Number", "UPC", "Other Authors", "Syndetics ISBNs", "Primary URLs", "ISBN1:SUMMARY", "ISBN1:TOC", "ISBN1:DBCHAPTER", "ISBN1:LC", "ISBN1:MC", "ISBN1:SC", "OCLC:SUMMARY", "OCLC:TOC", "OCLC:DBCHAPTER", "OCLC:LC", "OCLC:MC", "OCLC:SC", "UPC:AVSUMMARY", "UPC:TOC", "UPC:DBCHAPTER", "UPC:LC", "UPC:MC", "UPC:SC","ISBN2X:SUMMARY", "ISBN2X:TOC", "ISBN2X:DBCHAPTER", "ISBN2X:LC", "ISBN2x:MC", "ISBN2X:SC", "LC CLASS BOOL", "LCSH COUNT", "MESH COUNT", "OTHER SH COUNT"])
 
-
-print num_input_lines
+#print num_input_lines
 
 loopThroughInputList()
