@@ -100,7 +100,7 @@ foreach my $row (@datarows) {
 
     # isolate the bnum
     my $bnum = $row;
-    $bnum =~ s/^.*?,[A-Z]+(b\d+),.*$/\1/;
+    $bnum =~ s/^.*?,[A-Z]+(b\d+),.*$/$1/;
 
     # get the relevant MARC fields
     my $sth = $dbh->prepare(<<SQL);
@@ -121,31 +121,31 @@ $sth->bind_columns( undef, \$tag, \$i1, \$i2, \$data);
 print "\n\nRetrieving relevant MARC data for $bnum...\n";
     while ($sth->fetch()) {
         print "$tag  $i1$i2$data\n";
+
+        if ($tag =~ /0[59]0/) {
+            if ($data =~ /\^|a[A-Z]{1,3}\d+/) {
+                $lc_cn = 1;
+            }
+        }
+        elsif ($tag =~ /^6/) {
+            if ($i2 eq "0") {
+                $lcsh_ct += 1;
+            }
+            elsif ($i2 eq "2") {
+                $mesh_ct += 1;
+            }
+            else {
+                $o_sh_ct += 1 unless ($data =~ /\|2fast/);
+            }
+        }
     }
+
+    $row .= ",$lc_cn,$lcsh_ct,$mesh_ct,$o_sh_ct\n";
+    print OUTFILE $row;
 
 # close statement handle, database handle, and output file.
 $sth->finish();
 }
-
-
-# #############################################
-# # Do the things...
-# #############################################
-# my $nps_sql = "select v.rec_key, to_char(b.cat_date, 'YYYYMMDD'), b.mat_type from var_fields2 v, biblio2base b where v.marc_tag = '919' and v.INDICATOR1 = '0' and v.rec_key = b.rec_key";
-
-# my $sth = $dbh->prepare($nps_sql);
-
-# $sth->execute();
-
-# my( $rec_key, $cat_date, $mat_type);
-# $sth->bind_columns( undef, \$rec_key, \$cat_date, \$mat_type);
-
-# #cycle through results
-# while ($sth->fetch()) {
-#     print BNUMFILE "$rec_key\t$cat_date\t$mat_type\n";
-# } #end while $sth
-# # close statement handle
-# $sth->finish();
 
 $dbh->disconnect();
 
