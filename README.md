@@ -35,4 +35,5 @@ This suite of scripts is used to gather data on the discoverability (in our main
   * This would retrieve all the ACS Symposium Series titles: ACS symposium series (online collection)
   * This would retrieve just the ACS titles in the 2015 collection: ACS symposium series (online collection). 2015
   * This would retrieve all the ACS titles from 2011-2015 collections: ACS symposium series (online collection). 201 *(Note that this wouldn't include titles from the ACS 2010 collection because those were included in the same purchase as the backfile (1949-2009), and so they use the collection title: ACS symposium series (online collection). 1949-2010)*
-  * UNC staff can look up the 773-field collection titles for all e-resource collections. Instructions on how to access and use this data are here: https://intranet.lib.unc.edu/wikis/staff/index.php/E-Resources_collection_data
+  * You would NOT want to search on the following, because it could cause collection-level or database records to be pulled into your results, or possibly even print records: ACS symposium series
+* UNC staff can look up the 773-field collection titles for all e-resource collections. Instructions on how to access and use this data are here: https://intranet.lib.unc.edu/wikis/staff/index.php/E-Resources_collection_data
