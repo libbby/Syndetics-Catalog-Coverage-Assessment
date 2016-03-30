@@ -37,3 +37,25 @@ This suite of scripts is used to gather data on the discoverability (in our main
   * This would retrieve all the ACS titles from 2011-2015 collections: ACS symposium series (online collection). 201 *(Note that this wouldn't include titles from the ACS 2010 collection because those were included in the same purchase as the backfile (1949-2009), and so they use the collection title: ACS symposium series (online collection). 1949-2010)*
   * You would NOT want to search on the following, because it could cause collection-level or database records to be pulled into your results, or possibly even print records: ACS symposium series
 * UNC staff can look up the 773-field collection titles for all e-resource collections. Instructions on how to access and use this data are here: https://intranet.lib.unc.edu/wikis/staff/index.php/E-Resources_collection_data
+
+### Run first script -- ecoll_catalog_eval_1.pl
+The collection list is used as input. Running the script produces a list of unsuppressed (i.e. viewable in the public catalog) bib records on which to gather further data.
+
+This script is a Perl script running on the library server because it needs to interact directly with the ILS database. 
+
+* First move the collection list to the server.
+* Run the script like: 
+
+```
+perl ecoll_catalog_eval_1.pl path/to/collection_list_file.txt
+```
+
+* The output will be written to directory where your collection list file was found. It will be named the same thing as the collection list, with "_bibs" appended, and the file extension changed to .csv: 
+
+```
+path/to/collection_list_file_bibs.csv
+```
+
+* Before it exits, the script outputs to the screen the total number of records it identified. This should correspond to the number of lines in the output file. If you are evaluating a very large number of collections or some very large collections, you may want to split the output file created by this script into smaller files of <200,000 lines. The subsequent scripts would then be run on the smaller files. 
+
+
