@@ -19,4 +19,20 @@ This suite of scripts is used to gather data on the discoverability (in our main
 4. Run the third script on the bib/ILS data list. This pulls in the data that can only be grabbed by examining the live public catalog records, or querying the Syndetics API. 
 5. Import results of the third script into the database to compile collection-level stats/reports.
 
+## Steps in detail
+### Prepare collection list
+* Format: tab-delimited text file
+* File extension: .txt
+* Line endings: Unix
+* Data
+  * Element 1: Collection name to search on in the catalog. See below for more details on this.
+  * Element 2: A brief "shortcut" code for the collection. This is used instead of the full collection title string in the database to collapse the individual records into the correct collections, and to create a "this-record-in-this-collection" key, since some records will be part of more than one collection. 
 
+#### More on collection name
+* This will be the "Host Item" title (or part of it) that appears in the 773 field in bib records for e-resource collections that are processed by AAL/E-Resources Cataloging. These are the titles that include "(online collection)".
+* The query built with the collection name as entered will be a left-anchored phrase match
+* The type of query, combined with the structure/design of the assigned collection titles means that we can control the granularity of our reporting by how we enter the collection titles. Example: 
+  * This would retrieve all the ACS Symposium Series titles: ACS symposium series (online collection)
+  * This would retrieve just the ACS titles in the 2015 collection: ACS symposium series (online collection). 2015
+  * This would retrieve all the ACS titles from 2011-2015 collections: ACS symposium series (online collection). 201 *(Note that this wouldn't include titles from the ACS 2010 collection because those were included in the same purchase as the backfile (1949-2009), and so they use the collection title: ACS symposium series (online collection). 1949-2010)*
+  * UNC staff can look up the 773-field collection titles for all e-resource collections. Instructions on how to access and use this data are here: https://intranet.lib.unc.edu/wikis/staff/index.php/E-Resources_collection_data
