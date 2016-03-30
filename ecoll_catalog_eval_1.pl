@@ -24,7 +24,7 @@ $ENV{'NLS_LANG'} = 'AMERICAN_AMERICA.AL32UTF8';
 #************************************************************************************
 # Set up database stuff
 #************************************************************************************
-my($dbh, $sth, $sql);
+my($dbh, $sql);
 
 my $input = '/htdocs/connects/afton_iii_iiidba_perl.inc';
 my @pair;
@@ -85,42 +85,57 @@ $output_file =~ s/\.txt$/_bibs.csv/;
 open(COLLS, "<:utf8", "$coll_list") or die "Couldn't open input file given: $coll_list\n";
 open(OUTFILE, ">:utf8", "$output_file") or die "Couldn't open $output_file for output: $!\n";
 
-my $all_rows = 0;
 my @collrows = <COLLS>;
+my %collhash; #773 value and coll code
+my %collct; #number of records found for each collection
+
 foreach my $coll (@collrows) {
-    my $coll_ct = 0;
     chomp $coll;
     my ($coll_query, $coll_code) = split(/\t/, $coll);
+    $collhash{$coll_query} = $coll_code;
+};
+close(COLLS);
 
-    print "Compiling list of unsuppressed records in collection: $coll_query...";
-    # get the relevant MARC fields
-    my $sth = $dbh->prepare( "
-   SELECT v.rec_key
+foreach my $collstr1 (keys %collhash) {
+    $collct{$collstr1} = 0;
+}
+
+# get the relevant MARC fields
+my $sth = $dbh->prepare( "
+   SELECT v.rec_key, v.rec_data
         FROM var_fields2 v
         INNER JOIN biblio2base b
         ON v.rec_key = b.rec_key
           AND b.bcode3 NOT IN ('d', 'n', 'c')
+          AND b.mat_type IN ('z', 'g', 'j', 'w', 's')
         WHERE marc_tag = '773'
-        AND rec_data LIKE '|t${coll_query}%'
+        AND rec_data LIKE '%(online collection)%'
 ");
 
-    $sth->execute();
+$sth->execute();
 
-    my $bnum;
-    $sth->bind_columns( undef, \$bnum);
+my ($bnum, $rec_data);
+$sth->bind_columns( undef, \$bnum, \$rec_data);
 
-    while ($sth->fetch()) {
-        print OUTFILE "$coll_code,$bnum,$bnum$coll_code\n";
-        $coll_ct += 1;
+while ($sth->fetch()) {
+    $rec_data =~ s/^\|t//;
+    foreach my $collstr2 (keys %collhash) {
+        if (index($rec_data, $collstr2) == 0) {
+            print OUTFILE "$collhash{$collstr2},$bnum,$collhash{$collstr2}$bnum\n";
+            $collct{$collstr2} += 1;
+        }
     }
-    print " Found $coll_ct records.\n";
-    $all_rows += $coll_ct;
-
-    $sth->finish();
 }
 
+$sth->finish();
 $dbh->disconnect();
-close(COLLS);
 close(OUTFILE);
+
+my $all_rows = 0;
+foreach my $collstr3 (keys %collct) {
+    print "$collct{$collstr3} recs : $collstr3\n";
+    $all_rows += $collct{$collstr3};
+}
+
 print "Total records identified: $all_rows\n";
 exit;
