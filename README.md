@@ -14,3 +14,9 @@ This suite of scripts is used to gather data on the discoverability (in our main
 # Usage
 ## Overview of steps
 1. Prepare collection list -- this is a tab-delimited text file, with one collection per line.
+2. Run the first script with the collection list as input. This produces a list of unsuppressed (i.e. viewable in the public catalog) bib records on which to gather data.
+3. Run the second script on the bib record list. This gets some pieces of data that can only be grabbed from the ILS versions of the records. 
+4. Run the third script on the bib/ILS data list. This pulls in the data that can only be grabbed by examining the live public catalog records, or querying the Syndetics API. 
+5. Import results of the third script into the database to compile collection-level stats/reports.
+
+
