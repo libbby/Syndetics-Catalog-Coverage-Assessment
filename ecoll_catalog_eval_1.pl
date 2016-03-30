@@ -1,4 +1,8 @@
 #!/usr/bin/perl
+
+# See the following link for documentation on this script:
+# https://github.com/UNC-Libraries/Syndetics-Catalog-Coverage-Assessment
+
 use strict;
 use warnings;
 use DBI;
@@ -6,7 +10,6 @@ use  DBD::Oracle;
 use utf8;
 use locale;
 use Net::SSH2;
-use Getopt::Long; #allows for use of testing mode, http://perldoc.perl.org/Getopt/Long.html
 
 # set character encoding for stdout to utf8
 binmode(STDOUT, ":utf8");
@@ -17,12 +20,6 @@ binmode(STDOUT, ":utf8");
 $ENV{'PATH'} = '/bin:/usr/sbin';
 delete @ENV{'ENV', 'BASH_ENV'};
 $ENV{'NLS_LANG'} = 'AMERICAN_AMERICA.AL32UTF8';
-
-#############################################
-# set testing mode from command line arguments
-#############################################
-my $testing = '';
-GetOptions ('testing' => \$testing);
 
 #************************************************************************************
 # Set up database stuff
