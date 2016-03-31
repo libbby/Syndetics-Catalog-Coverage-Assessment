@@ -58,4 +58,28 @@ path/to/collection_list_file_bibs.csv
 
 * Before it exits, the script outputs to the screen the total number of records it identified. This should correspond to the number of lines in the output file. If you are evaluating a very large number of collections or some very large collections, you may want to split the output file created by this script into smaller files of <200,000 lines. The subsequent scripts would then be run on the smaller files. 
 
+### Run second script -- ecoll_catalog_eval_2.pl
+The output from ecoll_catalog_eval_1.pl is used as input. Running the script gathers data on presence of LC classification number and number of subject headings from the ILS. 
 
+Because this data has to come from the ILS, this is another Perl script running on the library server. 
+
+* Assuming that the output from the first script has been left in place: 
+
+```
+perl ecoll_catalog_eval_2.pl path/to/collection_list_file_bibs.csv
+```
+
+* The output will be written to: 
+
+```
+path/to/collection_list_file_ils.csv
+```
+
+### Run third script
+For each record listed in the output from the 2nd script, this script grabs data from: 
+* the Endeca XML web services API for the full record view
+* a series of calls to the Syndetics API
+
+Format for the Endeca full record XML: 
+
+http://search.lib.unc.edu/search?R=UNC{{BNUM}}&output-format=xml&record-options=include-record-facets
