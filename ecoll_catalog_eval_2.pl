@@ -29,7 +29,7 @@ my $input = '/htdocs/connects/afton_iii_iiidba_perl.inc';
 my @pair;
 my %mycnf;
 
-open (DBFILE, "<$input") || die &mail_error("Can't open hidden file\n");
+open (DBFILE, "<$input") || die "Can't open hidden file\n";
   while (<DBFILE>){
     chomp;
     @pair = split("=", $_);
@@ -63,7 +63,7 @@ if ($username =~ /^([-\@\w.]+)$/) {
 }
 
 $dbh = DBI->connect("dbi:Oracle:host=$host;sid=$sid", $username, $password)
-        or die &mail_error("Unable to connect: $DBI::errstr");
+        or die "Unable to connect: $DBI::errstr";
 
 # So we don't have to check every DBI call we set RaiseError.
 $dbh->{RaiseError} = 1;
