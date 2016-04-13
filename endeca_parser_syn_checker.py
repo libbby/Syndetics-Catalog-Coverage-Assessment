@@ -10,6 +10,31 @@ import lxml.etree as ET
 import lxml.html as HTML
 import urllib
 import csv
+import time
+
+def isEbook(): # test for determing if item is an ebook
+	global is_ebook
+	global is_ebook
+	is_ebook = []
+	global bool_is_ebook
+	total_bool_is_ebook = 0
+	f = 0
+	#while f < format_count:
+	fn = child.xpath('//Format/dimensionValues/item/name')
+	for name in fn:#name in child.xpath('//Format/dimensionValues/item/name'):
+		is_ebook.append(name.text)
+		#is_ebook.append(name.text)#child.xpath('//Format/dimensionValues/item/name/text()')
+		#if is_ebook[f] == "eBook":
+		if is_ebook[f] == "eBook":
+			bool_is_ebook = 1
+		else:
+			bool_is_ebook = 0
+		total_bool_is_ebook += bool_is_ebook
+		f += 1
+	if total_bool_is_ebook > 0:
+		bool_is_ebook = 1
+	else:
+		bool_is_ebook = 0
 
 def loopThroughInputList():
 	global il
@@ -21,7 +46,7 @@ def loopThroughInputList():
 	while il < len(BNums):
 		BNum = BNums[il]
 		endeca_url = "http://search.lib.unc.edu/search?R=UNC"+BNum+"&output-format=xml&record-options=include-record-facets"
-		webbrowser.open(endeca_url)	# here's your XML file in browser, if you want it.
+		#webbrowser.open(endeca_url)	# here's your XML file in browser, if you want it.
 		urllib.urlretrieve(endeca_url, 'BNum_XMLs/' + BNum + '.xml')	# saves that XML into the XML folder
 		
 		tree = ET.parse('BNum_XMLs/' + BNum + '.xml')	# set up XML tree to parse
@@ -32,6 +57,7 @@ def loopThroughInputList():
 		parseXML()
 		
 		il += 1
+		time.sleep(1.0)
 
 def parseXML():
 	global i
@@ -41,10 +67,12 @@ def parseXML():
 	isbn_count = int(child.xpath('count(//Syndetics-ISBN/item)'))
 	otherauthor_count = int(child.xpath('count(//Other-Authors/item)'))
 	primary_url_count = int(child.xpath('count(//Primary-URL/item)'))
-	format_count = int(child.xpath('count(//holdings/formats/item)'))
-	#isEbook()
+	format_count = int(child.xpath('count(//Format/dimensionValues/item)'))
+	isEbook()
 		
 	ice_toc = int(child.xpath('count(//ICE-Chapter-Title)'))
+	if ice_toc > 0:
+		ice_toc = 1
 	#if ice_toc != 0:	# if the tag ICE-Chapter-Title is not absent (that is, it IS present) Bool =1
 	#	bool_ice_toc = 1
 	#else:	# if the tag is absent, Bool =0
@@ -78,7 +106,7 @@ def parseXML():
 		#print child[1][1][i][1].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc) + ", " + str(otherauthor_count) + ", " + str(isbn_count) + ", " + str(primary_url_count) + ", " + str(bool_is_ebook) + ", " + str(isbnx[0]) + ", " + str(bool_isbn1_summary) + ", " + str(bool_isbn1_toc) + ", " + str(bool_isbn1_dbc) + ", " + str(bool_isbn1_lc) + ", " + str(bool_isbn1_mc) + ", " + str(bool_isbn1_sc) + ", " + str(bool_oclc_summary) + ", " + str(bool_oclc_toc) + ", " + str(bool_oclc_dbc) + ", " + str(bool_oclc_lc) + ", " + str(bool_oclc_mc) + ", " + str(bool_oclc_sc) + ", " + str(bool_upc_avsummary) + ", " + str(bool_upc_toc) + ", " + str(bool_upc_dbc) + ", " + str(bool_upc_lc) + ", " + str(bool_upc_mc) + ", " + str(bool_upc_sc) + ", " + str(bool_isbn2x_summary) + ", " + str(bool_isbn2x_toc) + ", " + str(bool_isbn2x_dbc) + ", " + str(bool_isbn2x_lc) + ", " + str(bool_isbn2x_mc) + ", " + str(bool_isbn2x_sc)
 		#c.writerow([collection_short, child[1][1][i][1].text, collection_short + child[1][1][i][1].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc, otherauthor_count, isbn_count, primary_url_count, str(bool_isbn1_summary), str(bool_isbn1_toc), str(bool_isbn1_dbc), str(bool_isbn1_lc), str(bool_isbn1_mc), str(bool_isbn1_sc), str(bool_oclc_summary), str(bool_oclc_toc), str(bool_oclc_dbc), str(bool_oclc_lc), str(bool_oclc_mc), str(bool_oclc_sc), str(bool_upc_avsummary), str(bool_upc_toc), str(bool_upc_dbc), str(bool_upc_lc), str(bool_upc_mc), str(bool_upc_sc), str(bool_isbn2x_summary), str(bool_isbn2x_toc), str(bool_isbn2x_dbc), str(bool_isbn2x_lc), str(bool_isbn2x_mc), str(bool_isbn2x_sc)])
 	
-	print(BNum, isbn_count, ice_toc, otherauthor_count, primary_url_count, format_count)
+	print(BNum, isbn_count, ice_toc, otherauthor_count, primary_url_count, format_count, is_ebook, bool_is_ebook)
 	
 	i += 1		
 		
