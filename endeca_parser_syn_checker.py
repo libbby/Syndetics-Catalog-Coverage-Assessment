@@ -3,7 +3,25 @@
 # Libby Wilcher (https://github.com/libbby/Syndetics-Catalog-Coverage-Assessment), UNC Chapel Hill
 # Script written and tested in Python 2.7
 # Script uses lxml library available at https://pypi.python.org/pypi/lxml/3.4.4
-# Last updated: 4 April 2016
+# Last updated: 19 April 2016
+
+#		INSTRUCTIONS:
+#	 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#	|																									|
+#	|	1.) You will need the lxml library installed in your Python27\Lib directory. 					|
+#	|		Find the appropriate copy for your machine here: https://pypi.python.org/pypi/lxml/3.4.4	|
+#	|	2.) You will need a text file named BNums.txt in the same directory this script is stored.		|
+#	|		Each line of the file must contain one (1) b-num of the format bXXXXXXX. Do not include 	|
+#	|		opening or trailing spaces.																	|
+#	|	3.) You will need a CSV named ____.csv in the same directory this script is stored. 			|
+#	|		This CSV must be the output from the perl script ____.pl.									|
+#	|	3.)	If, for whatever reason, you want each Endeca XML result opened in your web browser,		|
+#	|		un-comment line __.																			|
+#	|	4.) DO NOT remove the sleep time on line __. Bad things will probably happen, and your results	|
+#	|		will be retrieved from Endeca progressively slower.											|
+#	|	5.) This output from this script will be saved as a CSV file.									|
+#	|																									|
+#	 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import webbrowser 
 import lxml.etree as ET
