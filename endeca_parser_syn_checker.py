@@ -3,7 +3,7 @@
 # Libby Wilcher (https://github.com/libbby/Syndetics-Catalog-Coverage-Assessment), UNC Chapel Hill
 # Script written and tested in Python 2.7
 # Script uses lxml library available at https://pypi.python.org/pypi/lxml/3.4.4
-# Last updated: 26 April 2016
+# Last updated: 3 May 2016
 
 #		INSTRUCTIONS:
 #	 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -31,16 +31,15 @@ import csv
 import time
 
 def isEbook(): # test for determing if item is an ebook
-	global is_ebook
-	global is_ebook
-	is_ebook = []
+	global format_list
+	format_list = []
 	global bool_is_ebook
 	subtotal_bool_is_ebook = 0
 	f = 0
 	fn = child.xpath('//Format/dimensionValues/item/name')
 	for name in fn: #name in child.xpath('//Format/dimensionValues/item/name'):
-		is_ebook.append(name.text)
-		if is_ebook[f] == "eBook":
+		format_list.append(name.text)
+		if format_list[f] == "eBook":
 			bool_is_ebook = 1
 		else:
 			bool_is_ebook = 0
@@ -51,6 +50,13 @@ def isEbook(): # test for determing if item is an ebook
 	else:
 		bool_is_ebook = 0
 
+def populateISBN():
+	global isbn_list
+	isbn_list = []
+	ix = child.xpath('//fullRecordsList/item/properties/Syndetics-ISBN/item')
+	for item in ix:
+		isbn_list.append(item.text)
+		
 def loopThroughInputList():
 	global il
 	il = 0
@@ -72,7 +78,7 @@ def loopThroughInputList():
 		parseXML()
 		
 		il += 1
-		time.sleep(1.0)
+		time.sleep(2.0)
 
 def parseXML():
 	global i
@@ -84,34 +90,35 @@ def parseXML():
 	primary_url_count = int(child.xpath('count(//Primary-URL/item)'))
 	format_count = int(child.xpath('count(//Format/dimensionValues/item)'))
 	isEbook()
+	populateISBN()
 		
 	ice_toc = int(child.xpath('count(//ICE-Chapter-Title)'))
 	if ice_toc > 0:
-		ice_toc = 1
-	#if ice_toc != 0:	# if the tag ICE-Chapter-Title is not absent (that is, it IS present) Bool =1
-	#	bool_ice_toc = 1
-	#else:	# if the tag is absent, Bool =0
-	#	bool_ice_toc = 0
-			
+		bool_ice_toc = 1
+	else:
+		bool_ice_toc = 0
+				
 	main_author = int(child.xpath('count(//Main-Author)'))
 	if main_author > 0:
-		main_author = 1
+		bool_main_author = 1
+	else:
+		bool_main_author = 0
 
 	oclc_number = child.xpath('//fullRecordsList/item/properties/OCLCNumber/item/text()')
-		#if oclc_number != None:
-		#	bool_oclc = 1
-		#else:
-		#	bool_oclc = 0
+	if oclc_number != '':
+		bool_oclc = 1
+	else:
+		bool_oclc = 0
 				
-		#upc = child[1][1][i][2].find('UPC')
-		#if upc != None:
-		#	bool_upc = 1
-		#else:
-		#	bool_upc = 0
+	upc = child.xpath('//fullRecordsList/item/properties/UPC/item/text()')
+	if upc != '':
+		bool_upc = 1
+	else:
+		bool_upc = 0
 		
 		#populateISBN()
-		#isbn1SyndTest()
-		#time.sleep(0.001)
+	#isbn1SyndTest()
+	#time.sleep(1.0)
 		#oclcSynTest()
 		#upcSynTest()
 		#isbn2xSynTest()
@@ -119,7 +126,7 @@ def parseXML():
 		#print child[1][1][i][1].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc) + ", " + str(otherauthor_count) + ", " + str(isbn_count) + ", " + str(primary_url_count) + ", " + str(bool_is_ebook) + ", " + str(isbnx[0]) + ", " + str(bool_isbn1_summary) + ", " + str(bool_isbn1_toc) + ", " + str(bool_isbn1_dbc) + ", " + str(bool_isbn1_lc) + ", " + str(bool_isbn1_mc) + ", " + str(bool_isbn1_sc) + ", " + str(bool_oclc_summary) + ", " + str(bool_oclc_toc) + ", " + str(bool_oclc_dbc) + ", " + str(bool_oclc_lc) + ", " + str(bool_oclc_mc) + ", " + str(bool_oclc_sc) + ", " + str(bool_upc_avsummary) + ", " + str(bool_upc_toc) + ", " + str(bool_upc_dbc) + ", " + str(bool_upc_lc) + ", " + str(bool_upc_mc) + ", " + str(bool_upc_sc) + ", " + str(bool_isbn2x_summary) + ", " + str(bool_isbn2x_toc) + ", " + str(bool_isbn2x_dbc) + ", " + str(bool_isbn2x_lc) + ", " + str(bool_isbn2x_mc) + ", " + str(bool_isbn2x_sc)
 		#c.writerow([collection_short, child[1][1][i][1].text, collection_short + child[1][1][i][1].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc, otherauthor_count, isbn_count, primary_url_count, str(bool_isbn1_summary), str(bool_isbn1_toc), str(bool_isbn1_dbc), str(bool_isbn1_lc), str(bool_isbn1_mc), str(bool_isbn1_sc), str(bool_oclc_summary), str(bool_oclc_toc), str(bool_oclc_dbc), str(bool_oclc_lc), str(bool_oclc_mc), str(bool_oclc_sc), str(bool_upc_avsummary), str(bool_upc_toc), str(bool_upc_dbc), str(bool_upc_lc), str(bool_upc_mc), str(bool_upc_sc), str(bool_isbn2x_summary), str(bool_isbn2x_toc), str(bool_isbn2x_dbc), str(bool_isbn2x_lc), str(bool_isbn2x_mc), str(bool_isbn2x_sc)])
 	
-	print(BNum, isbn_count, ice_toc, main_author, otherauthor_count, primary_url_count, format_count, is_ebook, bool_is_ebook, oclc_number)
+	print(BNum, isbn_count, bool_ice_toc, bool_main_author, otherauthor_count, primary_url_count, format_count, format_list, bool_is_ebook, bool_oclc, oclc_number, bool_upc, upc, isbn_list)
 	
 	i += 1		
 		
