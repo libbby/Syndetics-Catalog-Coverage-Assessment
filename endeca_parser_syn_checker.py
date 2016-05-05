@@ -3,7 +3,7 @@
 # Libby Wilcher (https://github.com/libbby/Syndetics-Catalog-Coverage-Assessment), UNC Chapel Hill
 # Script written and tested in Python 2.7
 # Script uses lxml library available at https://pypi.python.org/pypi/lxml/3.4.4
-# Last updated: 3 May 2016
+# Last updated: 5 May 2016
 
 #		INSTRUCTIONS:
 #	 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -99,15 +99,15 @@ def isbn1SyndTest():
 			else:
 				bool_isbn1_sc = 0
 	else:
-		bool_isbn1_summary = "null"
-		bool_isbn1_toc = "null"
-		bool_isbn1_dbc = "null"
-		bool_isbn1_lc = "null"
-		bool_isbn1_mc = "null"
-		bool_isbn1_sc = "null"
+		bool_isbn1_summary = 0 # filter the CSV to differentiate items whose ISBN returns no Synetics info and items who do not HAVE ISBNs
+		bool_isbn1_toc = 0
+		bool_isbn1_dbc = 0
+		bool_isbn1_lc = 0
+		bool_isbn1_mc = 0
+		bool_isbn1_sc = 0
 
 def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search for Syndetics info using the OCLC number listed.
-	global bool_oclc_summary
+	global bool_oclc_avsummary
 	global bool_oclc_toc
 	global bool_oclc_dbc
 	global bool_oclc_lc
@@ -115,27 +115,27 @@ def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search 
 	global bool_oclc_sc
 	#if bool_is_ebook == 0:
 	if oclc_number == '':
-		bool_oclc_summary = 0
+		bool_oclc_avsummary = 0
 		bool_oclc_toc = 0
 		bool_oclc_dbc = 0
 		bool_oclc_lc = 0
 		bool_oclc_mc = 0
 		bool_oclc_sc = 0
 	else:
-		syn_doch_oclc = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + oclc_number[0])) # for missing Syndetics results, parse them as HTML
+		syn_doch_oclc = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(oclc_number))) # for missing Syndetics results, parse them as HTML
 		if syn_doch_oclc.find('head') != None: # passes a value of 0 to all booleans if the XML isn't even there (evident by way of present HTML tags, 'head' works fine.)
-			bool_oclc_summary = 0
+			bool_oclc_avsummary = 0
 			bool_oclc_toc = 0
 			bool_oclc_dbc = 0
 			bool_oclc_lc = 0
 			bool_oclc_mc = 0
 			bool_oclc_sc = 0
 		else:
-			syn_docx_oclc = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + oclc_number[0]))
+			syn_docx_oclc = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(oclc_number)))
 			if syn_docx_oclc.find('AVSUMMARY') != None: # Searches Syndetics XML for a 'SUMMARY' tag
-				bool_oclc_summary = 1
+				bool_oclc_avsummary = 1
 			else:
-				bool_oclc_summary = 0 
+				bool_oclc_avsummary = 0 
 			if syn_docx_oclc.find('TOC') != None: # Same as above, but for 'TOC' tag
 				bool_oclc_toc = 1
 			else:
@@ -156,7 +156,7 @@ def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search 
 				bool_oclc_sc = 1
 			else:
 				bool_oclc_sc = 0
-			#urllib.urlretrieve("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(child[1][1][i][2].find('OCLCNumber/item').text), child[1][1][i][0].text + ".xml")
+			#urllib.urlretrieve("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + oclc_number[0]
 		
 	#else:
 	#	bool_oclc_summary = "null"
@@ -165,6 +165,153 @@ def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search 
 	#	bool_oclc_lc = "null"
 	#	bool_oclc_mc = "null"
 	#	bool_oclc_sc = "null"
+	
+def upcSynTest(): # use this function on each ITEM in the Endeca XML to search for Syndetics info using the OCLC number listed.
+	global bool_upc_avsummary
+	global bool_upc_toc
+	global bool_upc_dbc
+	global bool_upc_lc
+	global bool_upc_mc
+	global bool_upc_sc
+	#if bool_is_ebook == 0:
+	if upc_number == '':
+		bool_upc_avsummary = 0
+		bool_upc_toc = 0
+		bool_upc_dbc = 0
+		bool_upc_lc = 0
+		bool_upc_mc = 0
+		bool_upc_sc = 0
+	else:
+		syn_doch_upc = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=&upc=" + str(upc_number) + "/XML.XML&client=ncchapelh")) # for missing Syndetics results, parse them as HTML
+		if syn_doch_upc.find('head') != None: # passes a value of 0 to all booleans if the XML isn't even there (evident by way of present HTML tags, 'head' works fine.)
+			bool_upc_avsummary = 0
+			bool_upc_toc = 0
+			bool_upc_dbc = 0
+			bool_upc_lc = 0
+			bool_upc_mc = 0
+			bool_upc_sc = 0
+		else:
+			syn_docx_upc = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=&upc=" + str(upc_number) + "/XML.XML&client=ncchapelh"))
+			if syn_docx_upc.find('AVSUMMARY') != None: # Searches Syndetics XML for a 'SUMMARY' tag
+				bool_upc_avsummary = 1
+			else:
+				bool_upc_avsummary = 0 
+			if syn_docx_upc.find('TOC') != None: # Same as above, but for 'TOC' tag
+				bool_upc_toc = 1
+			else:
+				bool_upc_toc = 0
+			if syn_docx_upc.find('DBCHAPTER') != None: # Same as above, but for 'DBCHAPTER' tag
+				bool_upc_dbc = 1
+			else:
+				bool_upc_dbc = 0
+			if syn_docx_upc.find('LC') != None: # Same as above, but for 'LC' tag
+				bool_upc_lc = 1
+			else:
+				bool_upc_lc = 0
+			if syn_docx_upc.find('MC') != None: # Same as above, but for 'MC' tag
+				bool_upc_mc = 1
+			else:
+				bool_upc_mc = 0
+			if syn_docx_upc.find('SC') != None: # Same as above, but for 'SC' tag
+				bool_upc_sc = 1
+			else:
+				bool_upc_sc = 0
+			#urllib.urlretrieve("http://syndetics.com/index.aspx?isbn=&upc=" + upc_number[0] + "/XML.XML&client=ncchapelh")
+		
+	#else:
+	#	bool_upc_avsummary = "null"
+	#	bool_upc_toc = "null" 
+	#	bool_upc_dbc = "null" 
+	#	bool_upc_lc = "null"
+	#	bool_upc_mc = "null"
+	#	bool_upc_sc = "null"
+	
+def isbn2xSynTest():
+	global bool_isbn2x_summary
+	global bool_isbn2x_toc
+	global bool_isbn2x_dbc
+	global bool_isbn2x_lc
+	global bool_isbn2x_mc
+	global bool_isbn2x_sc
+	global syn_docx_isbn2x
+	total_bool_isbn2x_summary = 0
+	total_bool_isbn2x_toc = 0
+	total_bool_isbn2x_dbc = 0
+	total_bool_isbn2x_lc = 0
+	total_bool_isbn2x_mc = 0
+	total_bool_isbn2x_sc = 0
+	y = 0
+	z = len(isbn_list)	# the number of ISBNs associated with the particular item
+	if z > 1:	
+		for y in range(z):	# loops through each ISBN
+			if y > 0:	# y = 0 is our ISBN1, we already did that one
+				syn_doch_isbn2x = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=" + isbn_list[y] + "/XML.XML&client=ncchapelh"))	# for missing Syndetics results, parse them as HTML
+				if syn_doch_isbn2x.find('head') != None:	# passes a value of 0 to all booleans if the XML isn't even there (evident by way of present HTML tags, 'head' works fine.)
+					bool_isbn2x_summary = 0
+					bool_isbn2x_toc = 0 
+					bool_isbn2x_dbc = 0
+					bool_isbn2x_lc = 0
+					bool_isbn2x_mc = 0
+					bool_isbn2x_sc = 0
+				else:	# starting the booleans at 0, not because they WILL be empty, but because we will be summing.
+					bool_isbn2x_summary = 0
+					bool_isbn2x_toc = 0 
+					bool_isbn2x_dbc = 0
+					bool_isbn2x_lc = 0
+					bool_isbn2x_mc = 0
+					bool_isbn2x_sc = 0
+					syn_docx_isbn2x = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=" + isbn_list[y] + "/XML.XML&client=ncchapelh"))
+					if syn_docx_isbn2x.find('SUMMARY') != None: # Searches Syndetics XML for a 'SUMMARY' tag
+						bool_isbn2x_summary = 1
+					else:
+						bool_isbn2x_summary = 0 
+					if syn_docx_isbn2x.find('TOC') != None: # Same as above, but for 'TOC' tag
+						bool_isbn2x_toc = 1
+					else:
+						bool_isbn2x_toc = 0
+					if syn_docx_isbn2x.find('DBCHAPTER') != None: # Same as above, but for 'DBCHAPTER' tag
+						bool_isbn2x_dbc = 1
+					else:
+						bool_isbn2x_dbc = 0
+					if syn_docx_isbn2x.find('LC') != None: # Same as above, but for 'LC' tag
+						bool_isbn2x_lc = 1
+					else:
+						bool_isbn2x_lc = 0
+					if syn_docx_isbn2x.find('MC') != None: # Same as above, but for 'MC' tag
+						bool_isbn2x_mc = 1
+					else:
+						bool_isbn2x_mc = 0
+					if syn_docx_isbn2x.find('SC') != None: # Same as above, but for 'SC' tag
+						bool_isbn2x_sc = 1
+					else:
+						bool_isbn2x_sc = 0
+				total_bool_isbn2x_summary += bool_isbn2x_summary	# a running sum of whether any ISBN was associated with data type.
+				total_bool_isbn2x_toc += bool_isbn2x_toc			# 0 means none were, 1 or more means at least one was.
+				total_bool_isbn2x_dbc += bool_isbn2x_dbc
+				total_bool_isbn2x_lc += bool_isbn2x_lc
+				total_bool_isbn2x_mc += bool_isbn2x_mc
+				total_bool_isbn2x_sc += bool_isbn2x_sc
+			y += 1
+			time.sleep(0.001)
+		if total_bool_isbn2x_summary > 0:	# turn those total_ variables into booleans for our CSV
+			bool_isbn2x_summary = 1
+		if total_bool_isbn2x_toc > 0:
+			bool_isbn2x_toc = 1
+		if total_bool_isbn2x_dbc > 0:
+			bool_isbn2x_dbc = 1
+		if total_bool_isbn2x_lc > 0:
+			bool_isbn2x_lc = 1
+		if total_bool_isbn2x_mc > 0:
+			bool_isbn2x_mc = 1
+		if total_bool_isbn2x_sc > 0:
+			bool_isbn2x_sc = 1
+	else:	
+		bool_isbn2x_summary = 0
+		bool_isbn2x_toc = 0 
+		bool_isbn2x_dbc = 0
+		bool_isbn2x_lc = 0
+		bool_isbn2x_mc = 0
+		bool_isbn2x_sc = 0
 			
 def loopThroughInputList():
 	global il
@@ -193,6 +340,7 @@ def parseXML():
 	global i
 	global format_count
 	global oclc_number
+	global upc_number
 	i = 0
 	
 	isbn_count = int(child.xpath('count(//Syndetics-ISBN/item)'))
@@ -220,8 +368,8 @@ def parseXML():
 	else:
 		bool_oclc = 0
 				
-	upc = child.xpath('//fullRecordsList/item/properties/UPC/item/text()')
-	if upc != '':
+	upc_number = child.xpath('//fullRecordsList/item/properties/UPC/item/text()')
+	if upc_number != '':
 		bool_upc = 1
 	else:
 		bool_upc = 0
@@ -230,15 +378,19 @@ def parseXML():
 	isbn1SyndTest()
 	time.sleep(1.0)
 	oclcSynTest()
-		#upcSynTest()
-		#isbn2xSynTest()
+	time.sleep(1.0)
+	upcSynTest()
+	time.sleep(1.0)
+	isbn2xSynTest()
 			
-		#print child[1][1][i][1].text + ", " + str(bool_ice_toc) + ", " + str(bool_main_author) + ", " + str(bool_oclc) + ", " + str(bool_upc) + ", " + str(otherauthor_count) + ", " + str(isbn_count) + ", " + str(primary_url_count) + ", " + str(bool_is_ebook) + ", " + str(isbnx[0]) + ", " + str(bool_isbn1_summary) + ", " + str(bool_isbn1_toc) + ", " + str(bool_isbn1_dbc) + ", " + str(bool_isbn1_lc) + ", " + str(bool_isbn1_mc) + ", " + str(bool_isbn1_sc) + ", " + str(bool_oclc_summary) + ", " + str(bool_oclc_toc) + ", " + str(bool_oclc_dbc) + ", " + str(bool_oclc_lc) + ", " + str(bool_oclc_mc) + ", " + str(bool_oclc_sc) + ", " + str(bool_upc_avsummary) + ", " + str(bool_upc_toc) + ", " + str(bool_upc_dbc) + ", " + str(bool_upc_lc) + ", " + str(bool_upc_mc) + ", " + str(bool_upc_sc) + ", " + str(bool_isbn2x_summary) + ", " + str(bool_isbn2x_toc) + ", " + str(bool_isbn2x_dbc) + ", " + str(bool_isbn2x_lc) + ", " + str(bool_isbn2x_mc) + ", " + str(bool_isbn2x_sc)
+		
 		#c.writerow([collection_short, child[1][1][i][1].text, collection_short + child[1][1][i][1].text, bool_ice_toc, bool_main_author, bool_oclc, bool_upc, otherauthor_count, isbn_count, primary_url_count, str(bool_isbn1_summary), str(bool_isbn1_toc), str(bool_isbn1_dbc), str(bool_isbn1_lc), str(bool_isbn1_mc), str(bool_isbn1_sc), str(bool_oclc_summary), str(bool_oclc_toc), str(bool_oclc_dbc), str(bool_oclc_lc), str(bool_oclc_mc), str(bool_oclc_sc), str(bool_upc_avsummary), str(bool_upc_toc), str(bool_upc_dbc), str(bool_upc_lc), str(bool_upc_mc), str(bool_upc_sc), str(bool_isbn2x_summary), str(bool_isbn2x_toc), str(bool_isbn2x_dbc), str(bool_isbn2x_lc), str(bool_isbn2x_mc), str(bool_isbn2x_sc)])
 	
-	#print(BNum, isbn_count, bool_ice_toc, bool_main_author, otherauthor_count, primary_url_count, format_count, format_list, bool_is_ebook, bool_oclc, oclc_number, bool_upc, upc, isbn_list)
-	#print(BNum, bool_isbn1_summary, bool_isbn1_toc, bool_isbn1_dbc, bool_isbn1_lc, bool_isbn1_mc, bool_isbn1_sc)
-	print(BNum, bool_oclc_summary, bool_oclc_toc, bool_oclc_dbc, bool_oclc_lc, bool_oclc_mc, bool_oclc_sc)
+	#print(BNum, isbn_count, bool_ice_toc, bool_main_author, otherauthor_count, primary_url_count, format_count, format_list, bool_is_ebook, bool_oclc, oclc_number, bool_upc, upc_number, isbn_list)
+	print(BNum, bool_isbn1_summary, bool_isbn1_toc, bool_isbn1_dbc, bool_isbn1_lc, bool_isbn1_mc, bool_isbn1_sc)
+	#print(BNum, bool_oclc_avsummary, bool_oclc_toc, bool_oclc_dbc, bool_oclc_lc, bool_oclc_mc, bool_oclc_sc)
+	#print(BNum, bool_upc_avsummary, bool_upc_toc, bool_upc_dbc, bool_upc_lc, bool_upc_mc, bool_upc_sc)
+	print(BNum, bool_isbn2x_summary, bool_isbn2x_toc, bool_isbn2x_dbc, bool_isbn2x_lc, bool_isbn2x_mc, bool_isbn2x_sc)
 	i += 1		
 		
 with open('BNums.txt', 'r') as f:
