@@ -3,7 +3,7 @@
 # Libby Wilcher (https://github.com/libbby/Syndetics-Catalog-Coverage-Assessment), UNC Chapel Hill
 # Script written and tested in Python 2.7
 # Script uses lxml library available at https://pypi.python.org/pypi/lxml/3.4.4
-# Last updated: 6 May 2016
+# Last updated: 9 May 2016
 
 #		INSTRUCTIONS:
 #	 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -174,7 +174,7 @@ def upcSynTest(): # use this function on each ITEM in the Endeca XML to search f
 	global upc_mc_boolean
 	global upc_sc_boolean
 	#if ebook_format_boolean == 0:
-	if upc_number == '':
+	if upc_number == None:
 		upc_avsummary_boolean = 0
 		upc_toc_boolean = 0
 		upc_dbc_boolean = 0
@@ -356,17 +356,25 @@ def parseXML():
 	else:
 		main_author_boolean = 0
 
-	oclc_number = child.xpath('//fullRecordsList/item/properties/OCLCNumber/item/text()')
-	if oclc_number != '':
+	
+	oclc = 0
+	oclc = int(child.xpath('count(//fullRecordsList/item/properties/OCLCNumber)'))
+	if oclc > 0:
 		oclc_boolean = 1
+		oclc_number = child.xpath('//fullRecordsList/item/properties/OCLCNumber/item/text()')
 	else:
 		oclc_boolean = 0
+		oclc_number = 'NO OCLC'
 				
-	upc_number = child.xpath('//fullRecordsList/item/properties/UPC/item/text()')
-	if upc_number != '':
+	
+	upc = 0
+	upc = int(child.xpath('count(//fullRecordsList/item/properties/UPC)'))
+	if upc > 0:
 		upc_boolean = 1
+		upc_number = child.xpath('//fullRecordsList/item/properties/UPC/item/text()')
 	else:
 		upc_boolean = 0
+		upc_number = 'NO UPC'
 		
 	isbn1SyndTest()
 	time.sleep(0.01)
@@ -377,10 +385,11 @@ def parseXML():
 	isbn2xSynTest()
 			
 	#print(BNum, isbn_count, toc_boolean, main_author_boolean, other_author_count, primary_url_count, format_count, format_list, ebook_format_boolean, oclc_boolean, oclc_number, upc_boolean, upc_number, isbn_list)
-	print(BNum, isbn_count, isbn1_summary_boolean, isbn1_toc_boolean, isbn1_dbc_boolean, isbn1_lc_boolean, isbn1_mc_boolean, isbn1_sc_boolean)
+	#print(BNum, isbn_count, isbn1_summary_boolean, isbn1_toc_boolean, isbn1_dbc_boolean, isbn1_lc_boolean, isbn1_mc_boolean, isbn1_sc_boolean)
 	#print(BNum, oclc_avsummary_boolean, oclc_toc_boolean, oclc_dbc_boolean, oclc_lc_boolean, oclc_mc_boolean, oclc_sc_boolean)
 	#print(BNum, upc_avsummary_boolean, upc_toc_boolean, upc_dbc_boolean, upc_lc_boolean, upc_mc_boolean, upc_sc_boolean)
 	#print(BNum, isbn2x_summary_boolean, isbn2x_toc_boolean, isbn2x_dbc_boolean, isbn2x_lc_boolean, isbn2x_mc_boolean, isbn2x_sc_boolean)
+	print(BNum, upc_boolean, upc_number, oclc_boolean, oclc_number)
 	
 	i += 1		
 		
@@ -425,7 +434,7 @@ with open('K-CSV.csv', 'r') as input_CSV:
 		row0.append('UPC: MC')
 		row0.append('UPC: SC')
 		all.append(row0)
-		print row0
+		#print row0
 				
 		for row in reader:
 			BNum = row[1]
