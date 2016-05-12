@@ -3,7 +3,7 @@
 # Libby Wilcher (https://github.com/libbby/Syndetics-Catalog-Coverage-Assessment), UNC Chapel Hill
 # Script written and tested in Python 2.7
 # Script uses lxml library available at https://pypi.python.org/pypi/lxml/3.4.4
-# Last updated: 9 May 2016
+# Last updated: 10 May 2016
 
 #		INSTRUCTIONS:
 #	 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -32,13 +32,13 @@ import time
 
 def isEbook(): # test for determing if item is an ebook
 	global format_list
-	format_list = []
-	global ebook_format_boolean
-	subtotal_ebook_format_boolean = 0
-	f = 0
+	format_list = [] # will be an array containing every string in the Endeca XML's format tag
+	global ebook_format_boolean # 1= at least one of the format strings provided in the XML is "eBook". 0= None of listed formats are "eBook."
+	subtotal_ebook_format_boolean = 0 
+	f = 0 # position in the list
 	fn = child.xpath('//Format/dimensionValues/item/name')
 	for name in fn: #name in child.xpath('//Format/dimensionValues/item/name'):
-		format_list.append(name.text)
+		format_list.append(name.text) #appends the string from Endeca XML tag to format_list
 		if format_list[f] == "eBook":
 			ebook_format_boolean = 1
 		else:
@@ -50,20 +50,22 @@ def isEbook(): # test for determing if item is an ebook
 	else:
 		ebook_format_boolean = 0
 
-def populateISBN():
+def populateISBN(): #grab all Syndetics ISBNs from the Endeca XML and put into an array
 	global isbn_list
 	isbn_list = []
 	ix = child.xpath('//fullRecordsList/item/properties/Syndetics-ISBN/item')
-	for item in ix:
+	for item in ix:#cycle through each item tag in Syndetics-ISBN
 		isbn_list.append(item.text)
-def isbn1SyndTest():
+
+def isbn1SyndTest(): #round of tests using the FIRST Syndetics ISBN listed in the XML. We are querying Syndetics, using only that ISBN, to check for the presence of summary/toc/dbc/lc/mc/sc
 	global isbn1_summary_boolean
 	global isbn1_toc_boolean
 	global isbn1_dbc_boolean
 	global isbn1_lc_boolean
 	global isbn1_mc_boolean
 	global isbn1_sc_boolean
-	if len(isbn_list) > 0:
+	if len(isbn_list) > 0: #if there exist any syndetics ISBNs listed in the Endeca XML
+		webbrowser.open("http://syndetics.com/index.aspx?isbn=" + isbn_list[0] + "/XML.XML&client=ncchapelh")
 		syn_doch_isbn1 = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=" + isbn_list[0] + "/XML.XML&client=ncchapelh")) # for missing Syndetics results, parse them as HTML
 		if syn_doch_isbn1.find('head') != None: # passes a value of 0 to all booleans if the XML isn't even there (evident by way of present HTML tags, 'head' works fine.)
 			isbn1_summary_boolean = 0
@@ -72,8 +74,8 @@ def isbn1SyndTest():
 			isbn1_lc_boolean = 0
 			isbn1_mc_boolean = 0
 			isbn1_sc_boolean = 0
-		else:
-			syn_docx_isbn1 = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=" + isbn_list[0] + "/XML.XML&client=ncchapelh")) # parse the Syndetics results as XML, because there were not HTML tags present.
+		else:# parse the Syndetics results as XML, because there were not HTML tags present.
+			syn_docx_isbn1 = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=" + isbn_list[0] + "/XML.XML&client=ncchapelh")) 
 			if syn_docx_isbn1.find('SUMMARY') != None: # Searches Syndetics XML for a 'SUMMARY' tag
 				isbn1_summary_boolean = 1
 			else:
@@ -106,23 +108,23 @@ def isbn1SyndTest():
 		isbn1_mc_boolean = 0
 		isbn1_sc_boolean = 0
 
-def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search for Syndetics info using the OCLC number listed.
+def oclcSynTest(): #round of tests to search for Syndetics info using the OCLC number listed in the Endeca XML.
 	global oclc_avsummary_boolean
 	global oclc_toc_boolean
 	global oclc_dbc_boolean
 	global oclc_lc_boolean
 	global oclc_mc_boolean
 	global oclc_sc_boolean
-	#if ebook_format_boolean == 0:
-	if oclc_number == '':
+	if oclc_boolean == 0: #if there is no OCLC number listed in the Endeca XML
 		oclc_avsummary_boolean = 0
 		oclc_toc_boolean = 0
 		oclc_dbc_boolean = 0
 		oclc_lc_boolean = 0
 		oclc_mc_boolean = 0
 		oclc_sc_boolean = 0
-	else:
-		syn_doch_oclc = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(oclc_number))) # for missing Syndetics results, parse them as HTML
+	else: #if there is an OCLC number listed in the Endeca XML
+		webbrowser.open("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(oclc_number[0]))
+		syn_doch_oclc = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(oclc_number[0]))) # for missing Syndetics results, parse them as HTML
 		if syn_doch_oclc.find('head') != None: # passes a value of 0 to all booleans if the XML isn't even there (evident by way of present HTML tags, 'head' works fine.)
 			oclc_avsummary_boolean = 0
 			oclc_toc_boolean = 0
@@ -130,9 +132,9 @@ def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search 
 			oclc_lc_boolean = 0
 			oclc_mc_boolean = 0
 			oclc_sc_boolean = 0
-		else:
-			syn_docx_oclc = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(oclc_number)))
-			if syn_docx_oclc.find('AVSUMMARY') != None: # Searches Syndetics XML for a 'SUMMARY' tag
+		else:# parse the Syndetics results as XML, because there were not HTML tags present.
+			syn_docx_oclc = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + str(oclc_number[0])))
+			if syn_docx_oclc.find('AVSUMMARY') != None: # Searches Syndetics XML for an 'AVSUMMARY' tag
 				oclc_avsummary_boolean = 1
 			else:
 				oclc_avsummary_boolean = 0 
@@ -156,17 +158,9 @@ def oclcSynTest(): # use this function on each ITEM in the Endeca XML to search 
 				oclc_sc_boolean = 1
 			else:
 				oclc_sc_boolean = 0
-			#urllib.urlretrieve("http://syndetics.com/index.aspx?isbn=/XML.XML&client=ncchapelh&oclc=" + oclc_number[0]
-		
-	#else:
-	#	bool_oclc_summary = "null"
-	#	oclc_toc_boolean = "null" 
-	#	oclc_dbc_boolean = "null" 
-	#	oclc_lc_boolean = "null"
-	#	oclc_mc_boolean = "null"
-	#	oclc_sc_boolean = "null"
-	
-def upcSynTest(): # use this function on each ITEM in the Endeca XML to search for Syndetics info using the OCLC number listed.
+			
+			
+def upcSynTest(): #round of tests to search for Syndetics info using the UPC listed in the Endeca XML.
 	global upc_avsummary_boolean
 	global upc_toc_boolean
 	global upc_dbc_boolean
@@ -174,15 +168,16 @@ def upcSynTest(): # use this function on each ITEM in the Endeca XML to search f
 	global upc_mc_boolean
 	global upc_sc_boolean
 	#if ebook_format_boolean == 0:
-	if upc_number == None:
+	if upc_boolean == 0:#if there is no UPC listed in the Endeca XML
 		upc_avsummary_boolean = 0
 		upc_toc_boolean = 0
 		upc_dbc_boolean = 0
 		upc_lc_boolean = 0
 		upc_mc_boolean = 0
 		upc_sc_boolean = 0
-	else:
-		syn_doch_upc = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=&upc=" + str(upc_number) + "/XML.XML&client=ncchapelh")) # for missing Syndetics results, parse them as HTML
+	else:#if there is a UPC listed in the Endeca XML
+		webbrowser.open("http://syndetics.com/index.aspx?isbn=&upc=" + str(upc_number[0]) + "/XML.XML&client=ncchapelh")
+		syn_doch_upc = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=&upc=" + str(upc_number[0]) + "/XML.XML&client=ncchapelh")) # for missing Syndetics results, parse them as HTML
 		if syn_doch_upc.find('head') != None: # passes a value of 0 to all booleans if the XML isn't even there (evident by way of present HTML tags, 'head' works fine.)
 			upc_avsummary_boolean = 0
 			upc_toc_boolean = 0
@@ -190,9 +185,9 @@ def upcSynTest(): # use this function on each ITEM in the Endeca XML to search f
 			upc_lc_boolean = 0
 			upc_mc_boolean = 0
 			upc_sc_boolean = 0
-		else:
-			syn_docx_upc = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=&upc=" + str(upc_number) + "/XML.XML&client=ncchapelh"))
-			if syn_docx_upc.find('AVSUMMARY') != None: # Searches Syndetics XML for a 'SUMMARY' tag
+		else:# parse the Syndetics results as XML, because there were not HTML tags present.
+			syn_docx_upc = ET.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=&upc=" + str(upc_number[0]) + "/XML.XML&client=ncchapelh"))
+			if syn_docx_upc.find('AVSUMMARY') != None: # Searches Syndetics XML for an 'AVSUMMARY' tag
 				upc_avsummary_boolean = 1
 			else:
 				upc_avsummary_boolean = 0 
@@ -216,17 +211,9 @@ def upcSynTest(): # use this function on each ITEM in the Endeca XML to search f
 				upc_sc_boolean = 1
 			else:
 				upc_sc_boolean = 0
-			#urllib.urlretrieve("http://syndetics.com/index.aspx?isbn=&upc=" + upc_number[0] + "/XML.XML&client=ncchapelh")
-		
-	#else:
-	#	upc_avsummary_boolean = "null"
-	#	upc_toc_boolean = "null" 
-	#	upc_dbc_boolean = "null" 
-	#	upc_lc_boolean = "null"
-	#	upc_mc_boolean = "null"
-	#	upc_sc_boolean = "null"
+			
 	
-def isbn2xSynTest():
+def isbn2xSynTest():#round of tests using the second and all subsequent Syndetics ISBNs from and item's Endeca XML
 	global isbn2x_summary_boolean
 	global isbn2x_toc_boolean
 	global isbn2x_dbc_boolean
@@ -234,17 +221,18 @@ def isbn2xSynTest():
 	global isbn2x_mc_boolean
 	global isbn2x_sc_boolean
 	global syn_docx_isbn2x
-	total_isbn2x_summary_boolean = 0
-	total_isbn2x_toc_boolean = 0
-	total_isbn2x_dbc_boolean = 0
-	total_isbn2x_lc_boolean = 0
-	total_isbn2x_mc_boolean = 0
-	total_isbn2x_sc_boolean = 0
+	subtotal_isbn2x_summary_boolean = 0
+	subtotal_isbn2x_toc_boolean = 0
+	subtotal_isbn2x_dbc_boolean = 0
+	subtotal_isbn2x_lc_boolean = 0
+	subtotal_isbn2x_mc_boolean = 0
+	subtotal_isbn2x_sc_boolean = 0
 	y = 0
 	z = len(isbn_list)	# the number of ISBNs associated with the particular item
 	if z > 1:	
 		for y in range(z):	# loops through each ISBN
 			if y > 0:	# y = 0 is our ISBN1, we already did that one
+				webbrowser.open("http://syndetics.com/index.aspx?isbn=" + isbn_list[y] + "/XML.XML&client=ncchapelh")
 				syn_doch_isbn2x = HTML.parse(urllib.urlopen("http://syndetics.com/index.aspx?isbn=" + isbn_list[y] + "/XML.XML&client=ncchapelh"))	# for missing Syndetics results, parse them as HTML
 				if syn_doch_isbn2x.find('head') != None:	# passes a value of 0 to all booleans if the XML isn't even there (evident by way of present HTML tags, 'head' works fine.)
 					isbn2x_summary_boolean = 0
@@ -253,8 +241,8 @@ def isbn2xSynTest():
 					isbn2x_lc_boolean = 0
 					isbn2x_mc_boolean = 0
 					isbn2x_sc_boolean = 0
-				else:	# starting the booleans at 0, not because they WILL be empty, but because we will be summing.
-					isbn2x_summary_boolean = 0
+				else:	# parse the Syndetics results as XML, because there were not HTML tags present. 
+					isbn2x_summary_boolean = 0 #starting the booleans at 0, not because they WILL be empty, but because we will be summing.
 					isbn2x_toc_boolean = 0 
 					isbn2x_dbc_boolean = 0
 					isbn2x_lc_boolean = 0
@@ -285,27 +273,27 @@ def isbn2xSynTest():
 						isbn2x_sc_boolean = 1
 					else:
 						isbn2x_sc_boolean = 0
-				total_isbn2x_summary_boolean += isbn2x_summary_boolean	# a running sum of whether any ISBN was associated with data type.
-				total_isbn2x_toc_boolean += isbn2x_toc_boolean			# 0 means none were, 1 or more means at least one was.
-				total_isbn2x_dbc_boolean += isbn2x_dbc_boolean
-				total_isbn2x_lc_boolean += isbn2x_lc_boolean
-				total_isbn2x_mc_boolean += isbn2x_mc_boolean
-				total_isbn2x_sc_boolean += isbn2x_sc_boolean
+				subtotal_isbn2x_summary_boolean += isbn2x_summary_boolean	# a running sum of whether any ISBN was associated with data type.
+				subtotal_isbn2x_toc_boolean += isbn2x_toc_boolean			# 0 means none were, 1 or more means at least one was.
+				subtotal_isbn2x_dbc_boolean += isbn2x_dbc_boolean
+				subtotal_isbn2x_lc_boolean += isbn2x_lc_boolean
+				subtotal_isbn2x_mc_boolean += isbn2x_mc_boolean
+				subtotal_isbn2x_sc_boolean += isbn2x_sc_boolean
 			y += 1
 			time.sleep(0.001)
-		if total_isbn2x_summary_boolean > 0:	# turn those total_ variables into booleans for our CSV
+		if subtotal_isbn2x_summary_boolean > 0:	# turn those subtotal_ variables into booleans for our CSV
 			isbn2x_summary_boolean = 1
-		if total_isbn2x_toc_boolean > 0:
+		if subtotal_isbn2x_toc_boolean > 0:
 			isbn2x_toc_boolean = 1
-		if total_isbn2x_dbc_boolean > 0:
+		if subtotal_isbn2x_dbc_boolean > 0:
 			isbn2x_dbc_boolean = 1
-		if total_isbn2x_lc_boolean > 0:
+		if subtotal_isbn2x_lc_boolean > 0:
 			isbn2x_lc_boolean = 1
-		if total_isbn2x_mc_boolean > 0:
+		if subtotal_isbn2x_mc_boolean > 0:
 			isbn2x_mc_boolean = 1
-		if total_isbn2x_sc_boolean > 0:
+		if subtotal_isbn2x_sc_boolean > 0:
 			isbn2x_sc_boolean = 1
-	else:	
+	else:
 		isbn2x_summary_boolean = 0
 		isbn2x_toc_boolean = 0 
 		isbn2x_dbc_boolean = 0
@@ -324,7 +312,7 @@ def loopThroughInputList():
 		
 	parseXML()
 			
-def parseXML():
+def parseXML():#parses the Endeca XML
 	global i
 	global isbn_count
 	global toc_boolean
@@ -393,9 +381,9 @@ def parseXML():
 	
 	i += 1		
 		
-#with open('BNums.txt', 'r') as f:
+
 with open('K-CSV.csv', 'r') as input_CSV:
-	with open('L-CSV.csv', 'w') as output_CSV:#BNums = f.read().splitlines()
+	with open('L-CSV.csv', 'w') as output_CSV:
 		reader = csv.reader(input_CSV)
 		writer = csv.writer(output_CSV, lineterminator = '\n')
 		
